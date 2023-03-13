@@ -5,18 +5,15 @@ module.exports = {
   },
   extends: [
     'eslint:recommended',
-    'plugin:react/recommended',
     'standard-with-typescript'
   ],
   overrides: [
   ],
   parserOptions: {
     ecmaVersion: 'latest',
-    sourceType: 'module'
+    sourceType: 'module',
+    project: ['./tsconfig.json'],
   },
-  plugins: [
-    'react'
-  ],
   rules: {
     'no-cond-assign': 2,
     'no-console': [
@@ -40,7 +37,7 @@ module.exports = {
     'no-extra-parens': 0,
 
     // 强制所有控制语句使用一致的括号风格
-    'curly': [2, 'all'],
+    'curly': [2, 'multi'],
     // 禁止 catch 子句的参数与外层作用域中的变量同名
     'no-catch-shadow': 0,
     // 不允许标签与变量同名
@@ -200,7 +197,7 @@ module.exports = {
     // 要求使用 JSDoc 注释
     'require-jsdoc': 0,
     // 要求或禁止使用分号而不是 ASI（这个才是控制行尾部分号的，）
-    // "semi": [2, "always"],
+    'semi': [2, 'never'],
     // 强制分号之前和之后使用一致的空格
     'semi-spacing': 2,
     // 要求同一个声明块中的变量按顺序排列
@@ -253,8 +250,6 @@ module.exports = {
     'no-const-assign': 2,
     // 禁止类成员中出现重复的名称
     'no-dupe-class-members': 2,
-    // 每个模块只能使用一个import
-    'no-duplicate-imports': 2,
     // 禁止 Symbolnew 操作符和 new 一起使用
     'no-new-symbol': 2,
     // 允许指定模块加载时的进口
@@ -289,59 +284,9 @@ module.exports = {
 
     // 强制使用一致的换行风格
     'linebreak-style': [2, 'unix'],
-    // 在JSX中强制布尔属性符号
-    'react/jsx-boolean-value': 2,
-    // 在JSX中验证右括号位置
-    // "react/jsx-closing-bracket-location": 1,
-    // 在JSX属性和表达式中加强或禁止大括号内的空格。
-    'react/jsx-curly-spacing': [2, {
-      'when': 'never',
-      'children': true
-    }],
-    // 在数组或迭代器中验证JSX具有key属性
-    'react/jsx-key': 2,
-    // 限制JSX中单行上的props的最大数量
-    'react/jsx-max-props-per-line': [1, {
-      'maximum': 5
-    }],
-    // 防止在JSX中重复的props
-    'react/jsx-no-duplicate-props': 2,
-    //  //防止使用未包装的JSX字符串
-    // "react/jsx-no-literals": 0,
-    // 在JSX中禁止未声明的变量
-    'react/jsx-no-undef': 2,
-    // 为用户定义的JSX组件强制使用PascalCase
-    'react/jsx-pascal-case': 0,
-    // 防止反应被错误地标记为未使用
-    'react/jsx-uses-react': 2,
-    // 防止在JSX中使用的变量被错误地标记为未使用
-    'react/jsx-uses-vars': 2,
-    // 防止在componentDidMount中使用setState
-    'react/no-did-mount-set-state': 2,
-    // 防止在componentDidUpdate中使用setState
-    'react/no-did-update-set-state': 2,
-    // 防止使用未知的DOM属性
-    'react/no-unknown-property': 2,
-    // 为React组件强制执行ES5或ES6类
-    'react/prefer-es6-class': 2,
-    // 防止在React组件定义中丢失props验证
-    // "react/prop-types": 1,
-    // 使用JSX时防止丢失React
-    'react/react-in-jsx-scope': 2,
-    // 防止没有children的组件的额外结束标签
-    'react/self-closing-comp': 0,
-    // 禁止不必要的bool转换
-    // "no-extra-boolean-cast": 0,
-    // 防止在数组中遍历中使用数组key做索引
-    // "react/no-array-index-key": 0,
-    // 不使用弃用的方法
-    'react/no-deprecated': 2,
-    // 在JSX属性中强制或禁止等号周围的空格
-    'react/jsx-equals-spacing': 2,
-    'react/jsx-filename-extension': [2, {
-      'extensions': ['.js', '.jsx']
-    }],
     // 禁止未使用的变量
-    'no-unused-vars': 0
+    'no-unused-vars': 0,
+
+    '@typescript-eslint/strict-boolean-expressions': 0
   }
 }

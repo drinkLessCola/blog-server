@@ -9,6 +9,7 @@ specifiers:
   '@types/http-errors': ^2.0.1
   '@types/morgan': ^1.9.4
   '@types/node': ^18.14.6
+  '@types/watch': ^1.0.3
   '@typescript-eslint/eslint-plugin': ^5.0.0
   async: ^3.2.4
   bcrypt: ^5.1.0
@@ -28,8 +29,10 @@ specifiers:
   sequelize: ^6.29.0
   ts-node: ^10.9.1
   typescript: ^4.9.5
+  watch: ^1.0.2
 
 dependencies:
+  '@types/watch': 1.0.3
   async: 3.2.4
   bcrypt: 5.1.0
   body-parser: 1.20.2
@@ -41,6 +44,7 @@ dependencies:
   morgan: 1.9.1
   mysql2: 3.2.0
   sequelize: 6.29.0_mysql2@3.2.0
+  watch: 1.0.2
 
 devDependencies:
   '@types/async': 3.2.18
@@ -284,6 +288,12 @@ packages:
 
   /@types/validator/13.7.13:
     resolution: {integrity: sha512-EMfHccxNKXaSxTK6DN0En9WsXa7uR4w3LQtx31f6Z2JjG5hJQeVX5zUYMZoatjZgnoQmRcT94WnNWwi0BzQW6Q==}
+    dev: false
+
+  /@types/watch/1.0.3:
+    resolution: {integrity: sha512-4YlW05EAjLp6FRATvsWUQK+7kFGKYYz506z68Krfi2oENCOE5DYvF3rYQoCigMwXOdkLGJXf5lWTbY45JPbhoQ==}
+    dependencies:
+      '@types/node': 18.14.6
     dev: false
 
   /@typescript-eslint/eslint-plugin/5.54.0_ycpbpc6yetojsgtrx3mwntkhsu:
@@ -1310,6 +1320,12 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
+  /exec-sh/0.2.2:
+    resolution: {integrity: sha512-FIUCJz1RbuS0FKTdaAafAByGS0CPvU3R0MeHxgtl+djzCc//F8HakL8GzmVNZanasTbTAY/3DRFA0KpVqj/eAw==}
+    dependencies:
+      merge: 1.2.1
+    dev: false
+
   /express/4.16.4:
     resolution: {integrity: sha512-j12Uuyb4FMrd/qQAm6uCHAkPtO8FDTRJZBDd5D2KOL2eLaz1yUNdUB/NOIyq0iU4q4cFarsUCrnFDPBcnksuOg==}
     engines: {node: '>= 0.10.0'}
@@ -1979,6 +1995,10 @@ packages:
 
   /merge-descriptors/1.0.1:
     resolution: {integrity: sha512-cCi6g3/Zr1iqQi6ySbseM1Xvooa98N0w31jzUYrXPX2xqObmFGHJ0tQ5u74H3mVh7wLouTseZyYIq39g8cNp1w==}
+    dev: false
+
+  /merge/1.2.1:
+    resolution: {integrity: sha512-VjFo4P5Whtj4vsLzsYBu5ayHhoHJ0UqNm7ibvShmbmoz7tGi0vXaoJbGdB+GmDMLUdg8DpQXEIeVDAe8MaABvQ==}
     dev: false
 
   /merge2/1.4.1:
@@ -2906,6 +2926,15 @@ packages:
   /void-elements/2.0.1:
     resolution: {integrity: sha512-qZKX4RnBzH2ugr8Lxa7x+0V6XD9Sb/ouARtiasEQCHB1EVU4NXtmHsDDrx1dO4ne5fc3J6EW05BP1Dl0z0iung==}
     engines: {node: '>=0.10.0'}
+    dev: false
+
+  /watch/1.0.2:
+    resolution: {integrity: sha512-1u+Z5n9Jc1E2c7qDO8SinPoZuHj7FgbgU1olSFoyaklduDvvtX7GMMtlE6OC9FTXq4KvNAOfj6Zu4vI1e9bAKA==}
+    engines: {node: '>=0.1.95'}
+    hasBin: true
+    dependencies:
+      exec-sh: 0.2.2
+      minimist: 1.2.8
     dev: false
 
   /webidl-conversions/3.0.1:
