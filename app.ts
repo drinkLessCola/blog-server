@@ -1,13 +1,11 @@
-import createError from 'http-errors';
-import express, { json, urlencoded, static as _static, NextFunction } from 'express';
-import { join } from 'path';
-import cookieParser from 'cookie-parser';
-import logger from 'morgan';
+import express from 'express'
 
-import indexRouter from './routes/index';
-import usersRouter from './routes/users';
+import indexRouter from './routes/index'
+import usersRouter from './routes/users'
+import articleRouter from './routes/article'
+import { initArticlesDB } from './src/articles'
 
-const app = express();
+const app = express()
 const PORT = 3000
 
 // view engine setup
@@ -20,8 +18,9 @@ const PORT = 3000
 // app.use(cookieParser());
 // app.use(_static(join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/user', usersRouter);
+app.use('/', indexRouter)
+app.use('/user', usersRouter)
+app.use('/article', articleRouter)
 
 // // catch 404 and forward to error handler
 // app.use(function(req, res, next) {
@@ -30,13 +29,13 @@ app.use('/user', usersRouter);
 
 // // error handler
 // app.use(function(
-//   err: { message: any; status: any; }, 
-//   req: { app: { get: (arg0: string) => string; }; }, 
-//   res: { 
-//     locals: { message: any; error: any; }; 
-//     status: (arg0: any) => void; 
-//     render: (arg0: string) => void; 
-//   }, 
+//   err: { message: any; status: any; },
+//   req: { app: { get: (arg0: string) => string; }; },
+//   res: {
+//     locals: { message: any; error: any; };
+//     status: (arg0: any) => void;
+//     render: (arg0: string) => void;
+//   },
 //   next: NextFunction) {
 //   // set locals, only providing error in development
 //   res.locals.message = err.message;
@@ -51,4 +50,4 @@ app.listen(PORT, () => {
   console.log(`Express with Typescript! http://localhost:${PORT}`)
 })
 
-export default app;
+export default app
