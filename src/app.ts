@@ -10,6 +10,15 @@ const PORT = 3000
 app.use(cors())
 app.use(bodyParser())
 
+app.use(async (ctx, next) => {
+  ctx.logger = getLogger()
+  const traceId = ctx.get('X-Request-Id') || uuidv4()
+  console.log(traceId)
+  ctx.logger.addContext('trace', traceId)
+  ctx.logger.addContext('path', ctx.path)
+  await next()
+})
+
 app.use(router.routes()).use(router.allowedMethods())
 // view engine setup
 // app.set('views', join(__dirname, 'views'));
