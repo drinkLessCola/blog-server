@@ -1,8 +1,18 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { basename, extname, resolve, sep, normalize } from 'node:path'
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { Stats, readFileSync, readdirSync, statSync } from 'node:fs'
 import type { IArticle } from '../type/article'
 import watch from 'watch'
-import { addArticle } from '../controller/article'
+import {
+  addArticle,
+  findArticleByPath,
+  removeArticle,
+  truncateArticle,
+  updateArticle
+} from '../controller/article'
+import chokidar from 'chokidar'
+
+
 // export const path = resolve(__dirname, '../')
 export const path = normalize('E:/nextCloud/java-script-learning-notes')
 console.log(path)
@@ -11,16 +21,139 @@ export const distPath = resolve(srcPath, 'dist')
 
 const filePath = 'E:\\nextCloud\\java-script-learning-notes'
 
-watch.createMonitor(filePath, function (monitor) {
-  monitor.on('created', function (filePath, stat) {
-    console.log(filePath)
-    console.log('Handle new files')
-  })
-  monitor.on('removed', function (filePath, stat) {
-    console.log(filePath)
-    console.log('Handle removed files')
-  })
+const handlePath = (_path: string): { path: string, parentPath: string, filename: string } => {
+  _path = normalize(_path.replace(`${filePath}${sep}`, ''))
+
+  const link = _path.split(sep)
+  const path = link.join('/')
+  const parentPath = link.slice(0, -1).join('/')
+  const filename = basename(path)
+  return {
+    path,
+    parentPath,
+    filename
+  }
+}
+
+
+const watcher = chokidar.watch(filePath, {
+  ignored: /(^|[/\\])\../, // ignore dotfiles
+  ignoreInitial: true,
+  persistent: true,
+  cwd: filePath,
+  atomic: true,
+  awaitWriteFinish: true
 })
+
+// Something to use when events are received.
+const log = console.log.bind(console)
+const handleAdd = async (_path: string, stats: Stats): Promise<void> => {
+  const { path, parentPath } = handlePath(_path)
+  const parent = await findArticleByPath(parentPath)
+  const isMenu = stats.isDirectory()
+
+  // getParentId
+  await addArticle({
+    title: basename(path, '.md'),
+    path,
+    parentId: parent ? parent.articleId : null,
+    parentPath,
+    isMenu,
+    lastModified: stats.mtime,
+    ino: stats.ino
+  })
+}
+const handleChange = async (_path: string, stats: Stats): Promise<void> => {
+  const { ino } = stats
+
+  await updateArticle({
+    ino,
+    lastModified: stats.mtime
+  })
+}
+
+const handleRemove = async (_path: string): Promise<void> => {
+  const { path } = handlePath(_path)
+
+  console.log('remove', path)
+  await removeArticle(path)
+}
+// Add event listeners.
+watcher
+  .on('add', async (path, stats) => {
+    log(`File ${path} has been added`)
+    if (!stats) return
+    await handleAdd(path, stats)
+  })
+  .on('change', async (path, stats) => {
+    log(`File ${path} has been changed`)
+    if (!stats) return
+    await handleChange(path, stats)
+  })
+  .on('unlink', async (path) => {
+    log(`File ${path} has been removed`)
+    await handleRemove(path)
+  })
+  .on('addDir', async (path, stats) => {
+    log(`Directory ${path} has been added`)
+    if (!stats) return
+    await handleAdd(path, stats)
+  })
+  .on('unlinkDir', async (path) => {
+    log(`Directory ${path} has been removed`)
+    await handleRemove(path)
+  })
+  .on('error', (error) => {
+    log(`Watcher error: ${error.toString()}`)
+  })
+  .on('ready', () => {
+    log('Initial scan complete. Ready for changes')
+  })
+
+// watch.createMonitor(filePath, function (monitor) {
+//   monitor.on('created', async (_path, stat) => {
+//     console.log('created', _path)
+//     const { path, parentPath } = handlePath(_path)
+//     const parent = await findArticleByPath(parentPath)
+//     const isMenu = stat.isDirectory()
+
+//     // getParentId
+//     const articleId = await addArticle({
+//       title: basename(path, '.md'),
+//       path,
+//       parentId: parent ? parent.articleId : null,
+//       parentPath,
+//       isMenu,
+//       lastModified: stat.mtime,
+//       ino: stat.ino
+//     })
+
+//     if (isMenu) {
+//       const articleNodes = getArticlesTree(_path)
+//       await buildArticlesRecord(articleNodes, articleId, path)
+//     }
+//   })
+
+//   monitor.on('changed', async (_path, stat, prevStat) => {
+//     console.log('changed', _path)
+//     const { ino } = stat
+
+//     await updateArticle({
+//       ino,
+//       lastModified: stat.mtime
+//     })
+//   })
+
+//   monitor.on('removed', async (_path, stat) => {
+//     const { path } = handlePath(_path)
+//     const article = await findArticleByPath(path)
+//     if (!article) return
+
+//     const { articleId } = article
+//     console.log('remove', _path)
+//     await removeArticle(articleId)
+//   })
+// })
 
 
 /**
@@ -40,10 +173,8 @@ export function getArticlesTree (dir: string, deep: number = 1): IArticle[] {
     const isDirectory = dirItem.isDirectory()
     if (!(isDirectory || extname(dirItem.name) === '.md')) continue
 
-    const name = basename(dirItem.name, '.md')
-    const fileStats = isDirectory
-      ? statSync(normalize(`${dir}/${name}`))
-      : statSync(normalize(`${dir}/${name}.md`))
+    const name = basename(dirItem.name)
+    const fileStats = statSync(normalize(`${dir}/${name}`))
     const children = isDirectory
       ? getArticlesTree(resolve(dir, dirItem.name), deep + 1)
       : null
@@ -54,7 +185,8 @@ export function getArticlesTree (dir: string, deep: number = 1): IArticle[] {
         .split(sep)
         .slice(-deep),
       children,
-      lastModified: fileStats.mtime
+      lastModified: fileStats.mtime,
+      ino: fileStats.ino
     }
 
     articles.push(article)
@@ -68,9 +200,17 @@ async function buildArticlesRecord (
   parentPath: string
 ): Promise<void> {
   for (const articleNode of articleNodes) {
-    const { name, link, children, lastModified } = articleNode
-    const path = link.join('/')
-    const articleId = await addArticle(name, path, parentId, parentPath, Boolean(children), lastModified)
+    const { name, children, lastModified, ino } = articleNode
+    const path = `${parentPath}/${name}`
+    const articleId = await addArticle({
+      title: basename(name, '.md'),
+      path,
+      parentId,
+      parentPath,
+      isMenu: Boolean(children),
+      lastModified,
+      ino
+    })
 
     if (children != null)
       await buildArticlesRecord(children, articleId, path)
@@ -79,9 +219,17 @@ async function buildArticlesRecord (
 
 export async function buildArticlesRootRecord (articleRoots: IArticle[]): Promise<void> {
   for (const articleRoot of articleRoots) {
-    const { name, link, children, lastModified } = articleRoot
+    const { name, link, children, lastModified, ino } = articleRoot
     const path = link.join('/')
-    const articleId = await addArticle(name, path, null, '', Boolean(children), lastModified)
+    const articleId = await addArticle({
+      title: basename(name, '.md'),
+      path,
+      parentId: null,
+      parentPath: '',
+      isMenu: Boolean(children),
+      lastModified,
+      ino
+    })
 
     if (children != null)
       await buildArticlesRecord(children, articleId, path)
@@ -90,14 +238,18 @@ export async function buildArticlesRootRecord (articleRoots: IArticle[]): Promis
 
 export async function initArticlesDB (): Promise<void> {
   const articleRoots = getArticlesTree(filePath)
+  await truncateArticle()
   await buildArticlesRootRecord(articleRoots)
 }
 
+
 export const getArticleContent = (path: string): string => {
   // 没有指定编码，readFileSync 返回的结果为 Buffer，指定后为 string
-  const content = readFileSync(resolve(filePath, `${path}.md`), 'utf-8')
+  const content = readFileSync(resolve(filePath, path), 'utf-8')
   return content
 }
+
+
 // export function getArticleSlug() {
 //   const slugs: Array<string[]> = []
 //   const articles = getArticles(srcPath)

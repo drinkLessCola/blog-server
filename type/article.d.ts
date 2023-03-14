@@ -3,6 +3,7 @@ export interface IArticle {
   link: string[]
   children?: MenuItem[] | null
   lastModified: Date
+  ino: number
 }
 
 export interface IArticleProps {

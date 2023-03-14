@@ -9,6 +9,7 @@ export interface IArticleAttributes {
   parentPath: string
   isMenu: boolean
   lastModified: Date
+  ino: number
 }
 
 export interface IArticleModel extends Model<
@@ -33,14 +34,19 @@ InferCreationAttributes<IArticleModel>
 
   isMenu: boolean
   lastModified: Date
+  ino: number
 }
 
 const Article = db.define<IArticleModel>(
   'article',
   {
+    ino: {
+      type: sequelize.BIGINT,
+      primaryKey: true
+    },
     articleId: {
       type: sequelize.STRING(64),
-      primaryKey: true
+      allowNull: false
     },
     title: {
       type: sequelize.STRING(128),

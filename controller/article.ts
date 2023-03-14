@@ -2,16 +2,29 @@ import type { ExpressMiddlewareWithRequest, ExpressMiddleware } from '../type/ex
 import ArticleModel from '../models/article'
 import type { IArticleModel, IArticleAttributes } from '../models/article'
 import { getArticleContent } from '../src/articles'
+// import { Op } from 'sequelize'
 
-export const addArticle = async (
-  title: string,
-  path: string,
-  parentId: string | null,
-  parentPath: string,
-  isMenu: boolean,
-  lastModified: Date
-// eslint-disable-next-line max-params
-): Promise<string> => {
+/**
+ * 添加一条文件记录
+ * @returns 新增文件记录的 articleId
+ */
+export const addArticle = async ({
+  ino,
+  title,
+  path,
+  parentId,
+  parentPath,
+  isMenu,
+  lastModified
+}: Omit<IArticleAttributes, 'articleId'>): Promise<string> => {
+  const isInoExist = await ArticleModel.findOne({
+    where: { ino }
+  })
+  if (isInoExist) {
+    console.log('ino exist', ino)
+    return isInoExist.articleId
+  }
+
   const { count: SiblingNum } = await ArticleModel.findAndCountAll({
     where: { parentId: parentId }
   })
@@ -25,11 +38,53 @@ export const addArticle = async (
     parentId,
     parentPath,
     isMenu,
-    lastModified
+    lastModified,
+    ino
   }
 
   await ArticleModel.create(article)
   return articleId
+}
+
+export const findArticleByPath = async (path: string): Promise<IArticleModel | null> => {
+  const res = await ArticleModel.findOne({
+    where: {
+      path
+    },
+    attributes: ['articleId', 'title', 'isMenu', 'lastModified']
+  })
+  return res
+}
+
+/**
+ * 文件内容更新，更新记录的最后修改时间
+ */
+export const updateArticle = async ({
+  ino,
+  lastModified
+}: Pick<IArticleAttributes, 'ino' | 'lastModified'>): Promise<void> => {
+  await ArticleModel.update({
+    lastModified
+  }, {
+    where: { ino }
+  })
+}
+
+/**
+ * 删除指定 path 的文件记录
+ * @param path
+ */
+export const removeArticle = async (path: IArticleAttributes['path']): Promise<void> => {
+  await ArticleModel.destroy({
+    where: { path }
+  })
+}
+
+export const getArticleByIno = async (ino: number): Promise<IArticleModel | null> => {
+  const article = await ArticleModel.findOne({
+    where: { ino }
+  })
+  return article
 }
 
 export const getArticlesByParentId = async (parentId: string | null): Promise<IArticleModel[]> => {
@@ -121,12 +176,7 @@ export const getArticleByPath: ExpressMiddlewareWithRequest<{ slug?: string }> =
     const slug = req.params[0] ?? ''
 
     console.log('articleInfo', slug)
-    const articleInfo = await ArticleModel.findOne({
-      where: {
-        path: slug
-      },
-      attributes: ['articleId', 'title', 'isMenu', 'lastModified']
-    })
+    const articleInfo = await findArticleByPath(slug)
     console.log(articleInfo, slug)
 
     if (!articleInfo) throw new Error()
@@ -155,3 +205,9 @@ export const getArticleByPath: ExpressMiddlewareWithRequest<{ slug?: string }> =
   }
 }
 
+
+export const truncateArticle = async (): Promise<void> => {
+  await ArticleModel.destroy({
+    truncate: true
+  })
+}
