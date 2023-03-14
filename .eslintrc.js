@@ -287,6 +287,9 @@ module.exports = {
     // 禁止未使用的变量
     'no-unused-vars': 0,
 
-    '@typescript-eslint/strict-boolean-expressions': 0
+    '@typescript-eslint/strict-boolean-expressions': 0,
+    '@typescript-eslint/no-confusing-void-expression': 0,
+    '@typescript-eslint/restrict-template-expressions': 0,
+    '@typescript-eslint/restrict-plus-operands': 0,
   }
 }
