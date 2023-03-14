@@ -11,3 +11,12 @@ export interface IArticleProps {
   link: string
   children: string[] | null
 }
+
+
+interface IMenuItem {
+  id: string
+  label: string
+  path: string
+  isMenu: boolean
+  children: IMenuItem[]
+}

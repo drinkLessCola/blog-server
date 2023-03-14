@@ -1,69 +1,64 @@
-import UserModel, { type IUserCreationAttributes } from '../models/user'
-import type { NextFunction, Request, Response } from 'express'
+import type { IUserCreationAttributes } from '../models/user'
 import bcrypt from 'bcrypt'
-import type { ExpressMiddlewareWithRequest, ExpressMiddleware } from '../type/express'
 import { checkMissingParams } from '../utils'
+import type { Next } from 'koa'
+import type { IContext } from '../type/middleware'
+import { createUser, listUser } from '../dao/user'
 
 const salt = bcrypt.genSaltSync(10)
 
 interface IUser {
-  userName?: string
-  password?: string
-  email?: string
+  userName: string
+  password: string
+  email: string
 }
 
-export const createUser: ExpressMiddlewareWithRequest<IUser> = async (req, res) => {
-  const { userName, password, email } = req.body ?? {}
-  const missingParams = checkMissingParams(userName, password, email)
+class UserController {
 
-  if (missingParams) {
-    res.send({
-      code: 422,
-      msg: '参数错误'
-    })
-    return
-  }
+  async create (ctx: IContext, next: Next): Promise<void> {
+    ctx.logger.debug(`createUser body=${JSON.stringify(ctx.body)}`)
 
-  const newUser: IUserCreationAttributes = {
-    userName,
-    password: bcrypt.hashSync(password, salt),
-    email
-  }
+    const { userName, password, email } = ctx.body as IUser
+    const missingParams = checkMissingParams(userName, password, email)
 
-  try {
-    const result = await UserModel.create(newUser)
-    const { userId } = result
-    res.send({
+    if (missingParams) {
+      ctx.logger.debug('[error] missingParams')
+      ctx.status = 422
+      ctx.body = {
+        code: 422,
+        msg: '参数错误'
+      }
+      return
+    }
+
+    const newUser: IUserCreationAttributes = {
+      userName,
+      password: bcrypt.hashSync(password, salt),
+      email
+    }
+
+    const userId = await createUser(newUser)
+    ctx.body = {
       code: 200,
       data: {
         userId
       },
       msg: '创建成功'
-    })
-  } catch (err) {
-    console.log(err)
-    res.send({
-      code: 500,
-      msg: '服务端错误'
-    })
+    }
+    ctx.logger.debug(`[success] ${userId}`)
+  }
+
+  async list (ctx: IContext, next: Next): Promise<void> {
+    ctx.logger.debug('listUser')
+
+    const data = await listUser()
+    ctx.body = {
+      code: 200,
+      msg: 'success',
+      data
+    }
+    ctx.logger.debug(`[success] ${JSON.stringify(data)}`)
   }
 }
 
-export const getUserList: ExpressMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-  const data = await UserModel.findAll({
-    where: {
-      'isDelete': false
-    },
-    attributes: ['userId', 'userName', 'email']
-  })
-  res.send({
-    code: 200,
-    msg: 'success',
-    data
-  })
-}
-
-export default {
-  create: createUser,
-  list: getUserList
-}
+export default new UserController()

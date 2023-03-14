@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { basename, extname, resolve, sep, normalize } from 'node:path'
-import { Stats, readFileSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync, readdirSync, statSync } from 'node:fs'
+import type { Stats } from 'node:fs'
 import type { IArticle } from '../type/article'
-import watch from 'watch'
 import {
-  addArticle,
-  findArticleByPath,
+  createArticle,
+  getArticleByPath,
   removeArticle,
   truncateArticle,
   updateArticle
-} from '../controller/article'
+} from '../dao/article'
 import chokidar from 'chokidar'
 
 
@@ -49,11 +49,11 @@ const watcher = chokidar.watch(filePath, {
 const log = console.log.bind(console)
 const handleAdd = async (_path: string, stats: Stats): Promise<void> => {
   const { path, parentPath } = handlePath(_path)
-  const parent = await findArticleByPath(parentPath)
+  const parent = await getArticleByPath(parentPath)
   const isMenu = stats.isDirectory()
 
   // getParentId
-  await addArticle({
+  await createArticle({
     title: basename(path, '.md'),
     path,
     parentId: parent ? parent.articleId : null,
@@ -114,11 +114,11 @@ watcher
 //   monitor.on('created', async (_path, stat) => {
 //     console.log('created', _path)
 //     const { path, parentPath } = handlePath(_path)
-//     const parent = await findArticleByPath(parentPath)
+//     const parent = await getArticleByPath(parentPath)
 //     const isMenu = stat.isDirectory()
 
 //     // getParentId
-//     const articleId = await addArticle({
+//     const articleId = await createArticle({
 //       title: basename(path, '.md'),
 //       path,
 //       parentId: parent ? parent.articleId : null,
@@ -146,7 +146,7 @@ watcher
 
 //   monitor.on('removed', async (_path, stat) => {
 //     const { path } = handlePath(_path)
-//     const article = await findArticleByPath(path)
+//     const article = await getArticleByPath(path)
 //     if (!article) return
 
 //     const { articleId } = article
@@ -202,7 +202,7 @@ async function buildArticlesRecord (
   for (const articleNode of articleNodes) {
     const { name, children, lastModified, ino } = articleNode
     const path = `${parentPath}/${name}`
-    const articleId = await addArticle({
+    const articleId = await createArticle({
       title: basename(name, '.md'),
       path,
       parentId,
@@ -221,7 +221,7 @@ export async function buildArticlesRootRecord (articleRoots: IArticle[]): Promis
   for (const articleRoot of articleRoots) {
     const { name, link, children, lastModified, ino } = articleRoot
     const path = link.join('/')
-    const articleId = await addArticle({
+    const articleId = await createArticle({
       title: basename(name, '.md'),
       path,
       parentId: null,
