@@ -1,9 +1,10 @@
 import Koa from 'koa'
 import cors from '@koa/cors'
 import { v4 as uuidv4 } from 'uuid'
-import getLogger from '../logger'
+import getLogger from './logger'
 import bodyParser from 'koa-bodyparser'
 import router from './routes'
+
 const app = new Koa()
 const PORT = 3000
 

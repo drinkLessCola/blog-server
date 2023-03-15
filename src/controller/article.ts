@@ -1,9 +1,10 @@
 import ArticleModel from '../models/article'
-import { getArticleContent } from '../src/articles'
-import { getArticleByPath, getArticlesByParentId } from '../dao/article'
+import { buildArticlesRootRecord, getArticleContent, getArticlesTree } from '../utils/articles'
+import { getArticleByPath, getArticlesByParentId, truncateArticle } from '../dao/article'
 import type { Context, Next } from 'koa'
 import type { IMenuItem } from '../type/article'
 import type { IContext } from '../type/middleware'
+import filePath from '../constant/path'
 // import { Op } from 'sequelize'
 
 const getMenuByParentId = async (parentId: string | null): Promise<IMenuItem[]> => {
@@ -53,15 +54,13 @@ class ArticleController {
     try {
       ctx.logger.debug('getArticleSlug')
       const slugs = await ArticleModel.findAll({
-        attributes: ['title', 'parentPath']
+        attributes: ['path']
       })
 
-      const data = slugs.map(({ title, parentPath }) => (
+      const data = slugs.map(({ path }) => (
         {
           // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-          slug: parentPath
-            ? `${parentPath}/${title}`.split('/')
-            : [title]
+          slug: path.split('/')
         }
       ))
 
@@ -114,6 +113,12 @@ class ArticleController {
     }
   }
 
+  async init (ctx: Context, next: Next): Promise<void> {
+    ctx.logger.info('[initArticleDB]')
+    const articleRoots = getArticlesTree(filePath)
+    await truncateArticle()
+    await buildArticlesRootRecord(articleRoots)
+  }
 }
 
 export default new ArticleController()

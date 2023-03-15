@@ -11,7 +11,7 @@ export interface IUserAttributes {
 }
 export type IUserCreationAttributes = Pick<IUserAttributes, 'userName' | 'password' | 'email'>
 
-interface IUserModel extends Model<
+export interface IUserModel extends Model<
 InferAttributes<IUserModel>,
 InferCreationAttributes<IUserModel, { omit: 'userId' | 'isDelete' | 'createdAt' }>
 > {

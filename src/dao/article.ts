@@ -1,4 +1,4 @@
-import type { IArticleAttributes, IArticleModel } from "../models/article"
+import type { IArticleAttributes, IArticleModel } from '../models/article'
 import ArticleModel from '../models/article'
 
 /**
@@ -45,8 +45,8 @@ export const createArticle = async ({
 
 /**
  * 根据 path 查询文章
- * @param path 
- * @returns 
+ * @param path
+ * @returns
  */
 export const getArticleByPath = async (path: string): Promise<IArticleModel | null> => {
   const res = await ArticleModel.findOne({
@@ -60,8 +60,8 @@ export const getArticleByPath = async (path: string): Promise<IArticleModel | nu
 
 /**
  * 根据 ino 查询文章
- * @param ino 
- * @returns 
+ * @param ino
+ * @returns
  */
 export const getArticleByIno = async (ino: number): Promise<IArticleModel | null> => {
   const article = await ArticleModel.findOne({

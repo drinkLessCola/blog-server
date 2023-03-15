@@ -7,22 +7,22 @@ import {
   createArticle,
   getArticleByPath,
   removeArticle,
-  truncateArticle,
   updateArticle
 } from '../dao/article'
 import chokidar from 'chokidar'
+import ARTICLE_PATH from '../constant/path'
 
 
 // export const path = resolve(__dirname, '../')
-export const path = normalize('E:/nextCloud/java-script-learning-notes')
-console.log(path)
-export const srcPath = resolve(path, '../article')
-export const distPath = resolve(srcPath, 'dist')
+// /home/workspace/nextcloud/data/zirina
+// export const path = normalize('/home/files/java-script-learning-notes')
+// console.log(path)
+// export const srcPath = resolve(path, '../article')
+// export const distPath = resolve(srcPath, 'dist')
 
-const filePath = 'E:\\nextCloud\\java-script-learning-notes'
 
 const handlePath = (_path: string): { path: string, parentPath: string, filename: string } => {
-  _path = normalize(_path.replace(`${filePath}${sep}`, ''))
+  _path = normalize(_path.replace(`${ARTICLE_PATH}${sep}`, ''))
 
   const link = _path.split(sep)
   const path = link.join('/')
@@ -36,11 +36,11 @@ const handlePath = (_path: string): { path: string, parentPath: string, filename
 }
 
 
-const watcher = chokidar.watch(filePath, {
+const watcher = chokidar.watch(ARTICLE_PATH, {
   ignored: /(^|[/\\])\../, // ignore dotfiles
   ignoreInitial: true,
   persistent: true,
-  cwd: filePath,
+  cwd: ARTICLE_PATH,
   atomic: true,
   awaitWriteFinish: true
 })
@@ -110,7 +110,7 @@ watcher
     log('Initial scan complete. Ready for changes')
   })
 
-// watch.createMonitor(filePath, function (monitor) {
+// watch.createMonitor(ARTICLE_PATH, function (monitor) {
 //   monitor.on('created', async (_path, stat) => {
 //     console.log('created', _path)
 //     const { path, parentPath } = handlePath(_path)
@@ -236,16 +236,9 @@ export async function buildArticlesRootRecord (articleRoots: IArticle[]): Promis
   }
 }
 
-export async function initArticlesDB (): Promise<void> {
-  const articleRoots = getArticlesTree(filePath)
-  await truncateArticle()
-  await buildArticlesRootRecord(articleRoots)
-}
-
-
 export const getArticleContent = (path: string): string => {
   // 没有指定编码，readFileSync 返回的结果为 Buffer，指定后为 string
-  const content = readFileSync(resolve(filePath, path), 'utf-8')
+  const content = readFileSync(resolve(ARTICLE_PATH, path), 'utf-8')
   return content
 }
 
