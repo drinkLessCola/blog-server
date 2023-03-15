@@ -1,4 +1,6 @@
 node_modules
 dist
 logs
-database/index.ts
+src/database/index.ts
+build
+*.tar.gz
