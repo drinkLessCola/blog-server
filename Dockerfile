@@ -1,12 +1,9 @@
-FROM node:latest AS base
+FROM node:alpine AS base
 LABEL maintainer=DrinkLessCola
-RUN mkdir -p /home/blog-server
 WORKDIR /home/blog-server
-COPY package*.json ./
+COPY package*.json .
 RUN npm install --registry=https://registry.npm.taobao.org
 COPY . .
-
-FROM base AS production
-RUN npm run build
+RUN tsc
 EXPOSE 3000
 CMD ["node", "src/build/app.js"]
