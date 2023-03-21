@@ -1,6 +1,7 @@
 import Router from '@koa/router'
 import ArticleController from './controller/article'
 import UserController from './controller/user'
+import './models/association/articleTag'
 
 const router = new Router()
 
@@ -12,6 +13,8 @@ router.get('/', function (ctx, next) {
 router.get('/article/menu', ArticleController.getMenu)
 router.get('/article/slug', ArticleController.getSlug)
 router.get('/article/init', ArticleController.init)
+router.get('/article/fixCreatedAt', ArticleController.fixCreatedAt)
+router.get('/article/listInTimeOrder', ArticleController.getListInTimeOrder)
 router.get('/article/(.*)', ArticleController.getArticle)
 
 // user 相关路由

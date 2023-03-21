@@ -1,10 +1,10 @@
 import ArticleModel from '../models/article'
-import { buildArticlesRootRecord, getArticleContent, getArticlesTree } from '../utils/articles'
-import { getArticleByPath, getArticlesByParentId, truncateArticle } from '../dao/article'
+import { buildArticlesRootRecord, getArticleContent, getArticleCreatedAt, getArticlesTree } from '../utils/articles'
+import { getArticleByPath, getArticleInTimeOrder, getArticleList, getArticlesByParentId, truncateArticle, updateArticleCreatedAt } from '../dao/article'
 import type { Context, Next } from 'koa'
 import type { IMenuItem } from '../type/article'
 import type { IContext } from '../type/middleware'
-import filePath from '../constant/path'
+import { ARTICLE_PATH as filePath } from '../constant/path'
 // import { Op } from 'sequelize'
 
 const getMenuByParentId = async (parentId: string | null): Promise<IMenuItem[]> => {
@@ -118,6 +118,30 @@ class ArticleController {
     const articleRoots = getArticlesTree(filePath)
     await truncateArticle()
     await buildArticlesRootRecord(articleRoots)
+  }
+
+  async fixCreatedAt (ctx: Context, next: Next): Promise<void> {
+    ctx.logger.info('[fixArticleCreatedAt]')
+    const articleList = await getArticleList()
+    await Promise.all(
+      articleList.map(async ({ path }) => {
+        const createdAt = getArticleCreatedAt(path)
+        console.log('createAt', createdAt)
+        if (!createdAt) return
+        return await updateArticleCreatedAt({ path, createdAt })
+      })
+    )
+  }
+
+  async getListInTimeOrder (ctx: Context, next: Next): Promise<void> {
+    ctx.logger.info('[initArticleDB]')
+    const data = await getArticleInTimeOrder()
+    ctx.status = 200
+    ctx.body = {
+      code: 200,
+      msg: 'success',
+      data
+    }
   }
 }
 
