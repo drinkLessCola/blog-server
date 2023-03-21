@@ -2,6 +2,7 @@ export interface IArticle {
   name: string
   link: string[]
   children?: MenuItem[] | null
+  createdAt: Date
   lastModified: Date
   ino: number
 }

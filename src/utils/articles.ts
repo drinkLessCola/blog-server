@@ -10,9 +10,9 @@ import {
   updateArticle
 } from '../dao/article'
 import chokidar from 'chokidar'
-import ARTICLE_PATH from '../constant/path'
+import { ARTICLE_PATH } from '../constant/path'
 
-
+const OLD_ARTICLE_PATH = 'E:\\js\\java-script-learning-notes'
 // export const path = resolve(__dirname, '../')
 // /home/workspace/nextcloud/data/zirina
 // export const path = normalize('/home/files/java-script-learning-notes')
@@ -59,6 +59,7 @@ const handleAdd = async (_path: string, stats: Stats): Promise<void> => {
     parentId: parent ? parent.articleId : null,
     parentPath,
     isMenu,
+    createdAt: stats.ctime,
     lastModified: stats.mtime,
     ino: stats.ino
   })
@@ -185,6 +186,7 @@ export function getArticlesTree (dir: string, deep: number = 1): IArticle[] {
         .split(sep)
         .slice(-deep),
       children,
+      createdAt: fileStats.ctime,
       lastModified: fileStats.mtime,
       ino: fileStats.ino
     }
@@ -194,13 +196,19 @@ export function getArticlesTree (dir: string, deep: number = 1): IArticle[] {
   return articles
 }
 
+export function getArticleCreatedAt (path: string): Date {
+  const fileStats = statSync(normalize(`${OLD_ARTICLE_PATH}/${path}`))
+  console.log(normalize(`${OLD_ARTICLE_PATH}/${path}`))
+  return fileStats.birthtime
+}
+
 async function buildArticlesRecord (
   articleNodes: IArticle[],
   parentId: string,
   parentPath: string
 ): Promise<void> {
   for (const articleNode of articleNodes) {
-    const { name, children, lastModified, ino } = articleNode
+    const { name, children, createdAt, lastModified, ino } = articleNode
     const path = `${parentPath}/${name}`
     const articleId = await createArticle({
       title: basename(name, '.md'),
@@ -208,6 +216,7 @@ async function buildArticlesRecord (
       parentId,
       parentPath,
       isMenu: Boolean(children),
+      createdAt,
       lastModified,
       ino
     })
@@ -219,7 +228,7 @@ async function buildArticlesRecord (
 
 export async function buildArticlesRootRecord (articleRoots: IArticle[]): Promise<void> {
   for (const articleRoot of articleRoots) {
-    const { name, link, children, lastModified, ino } = articleRoot
+    const { name, link, children, createdAt, lastModified, ino } = articleRoot
     const path = link.join('/')
     const articleId = await createArticle({
       title: basename(name, '.md'),
@@ -227,6 +236,7 @@ export async function buildArticlesRootRecord (articleRoots: IArticle[]): Promis
       parentId: null,
       parentPath: '',
       isMenu: Boolean(children),
+      createdAt,
       lastModified,
       ino
     })
@@ -241,7 +251,6 @@ export const getArticleContent = (path: string): string => {
   const content = readFileSync(resolve(ARTICLE_PATH, path), 'utf-8')
   return content
 }
-
 
 // export function getArticleSlug() {
 //   const slugs: Array<string[]> = []
