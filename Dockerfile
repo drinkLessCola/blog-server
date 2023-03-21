@@ -3,7 +3,8 @@ LABEL maintainer=DrinkLessCola
 WORKDIR /home/blog-server
 COPY package.json .
 ENV NODE_ENV=development
-RUN npm ci\
+RUN npm install --only=dev\
+    && npm install\
     && npm install typescript -g
 COPY . .
 RUN tsc
