@@ -97,8 +97,8 @@ export const getArticleInTimeOrder = async (): Promise<IArticleListInDate[]> => 
     attributes: [
       [Sequelize.fn('date_format', Sequelize.col('createdAt'), '%Y-%m-%d'), 'createDate']
     ],
-    order: [['createdAt', 'DESC']],
-    group: ['createDate']
+    group: ['createDate'],
+    order: [['createDate', 'DESC']]
     // group: [sequelize.fn('DATE', sequelize.col('createdAt')), 'Date']
   }) as Array<IArticleModel & { dataValues: { createDate: string } }>
 

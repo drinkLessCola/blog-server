@@ -1,29 +1,67 @@
 import ArticleModel from '../models/article'
 import { buildArticlesRootRecord, getArticleContent, getArticleCreatedAt, getArticlesTree } from '../utils/articles'
-import { getArticleByPath, getArticleInTimeOrder, getArticleList, getArticlesByParentId, truncateArticle, updateArticleCreatedAt } from '../dao/article'
+import { getArticleByPath, getArticleInTimeOrder, getArticleList, getArticlesByParentId, updateArticleCreatedAt } from '../dao/article'
 import type { Context, Next } from 'koa'
 import type { IMenuItem } from '../type/article'
 import type { IContext } from '../type/middleware'
 import { ARTICLE_PATH as filePath } from '../constant/path'
+import { listToTree } from '../utils'
 // import { Op } from 'sequelize'
 
-const getMenuByParentId = async (parentId: string | null): Promise<IMenuItem[]> => {
-  const nodes = await getArticlesByParentId(parentId)
-  const menuItems = []
-  for (const node of nodes) {
-    const { articleId, title, path, isMenu } = node
+// /** @deprecated 获取目录(本地用时 883 ms)，use 'getMenu' instead. */
+// const getMenuByParentId = async (parentId: string | null): Promise<IMenuItem[]> => {
+//   const nodes = await getArticlesByParentId(parentId)
+//   const menuItems = []
+//   for (const node of nodes) {
+//     const { articleId, title, path, isMenu } = node
 
-    const children = await getMenuByParentId(articleId)
-    const menuItem: IMenuItem = {
-      id: articleId,
-      label: title,
-      path,
-      children,
-      isMenu
-    }
-    menuItems.push(menuItem)
-  }
-  return menuItems
+//     const children = await getMenuByParentId(articleId)
+//     const menuItem: IMenuItem = {
+//       id: articleId,
+//       label: title,
+//       path,
+//       children,
+//       isMenu
+//     }
+//     menuItems.push(menuItem)
+//   }
+//   return menuItems
+// }
+
+/**
+ * 获取目录(本地用时 178 ms)
+ * @returns 树状 JSON 表示的 menu
+ */
+const getMenu = async (): Promise<IMenuItem[]> => {
+  const list = (await getArticleList()).map(({ ino, articleId, parentId, path, title, isMenu }) => ({
+    id: articleId,
+    parentId,
+    path,
+    label: title,
+    isMenu
+  }))
+  const menu = listToTree(list, 'id', 'parentId')
+  console.log('menu', menu)
+
+  return menu as IMenuItem[]
+  // const map = new Map<string, IMenuItem[]>()
+
+  // list.forEach((item, idx) => {
+  //   const { articleId, parentId } = item
+  //   const childList = list.filter((item) => item.parentId === articleId)
+  //   const children = childList.map(({
+  //     articleId: id,
+  //     title: label,
+  //     path,
+  //     isMenu
+  //   }) => {
+
+  //     return { id, label, path, isMenu }
+  //   })
+
+  //   map.set(articleId, (map.get(articleId) ?? []).push(...children))
+  // })
+
 }
 
 class ArticleController {
@@ -31,7 +69,7 @@ class ArticleController {
   async getMenu (ctx: IContext, next: Next): Promise<void> {
     try {
       ctx.logger.debug('getMenu')
-      const menu = await getMenuByParentId(null)
+      const menu = await getMenu()
       ctx.status = 200
       ctx.body = {
         code: 200,
@@ -116,7 +154,6 @@ class ArticleController {
   async init (ctx: Context, next: Next): Promise<void> {
     ctx.logger.info('[initArticleDB]')
     const articleRoots = getArticlesTree(filePath)
-    await truncateArticle()
     await buildArticlesRootRecord(articleRoots)
   }
 
@@ -135,14 +172,19 @@ class ArticleController {
 
   async getListInTimeOrder (ctx: Context, next: Next): Promise<void> {
     ctx.logger.info('[initArticleDB]')
-    const data = await getArticleInTimeOrder()
-    ctx.status = 200
-    ctx.body = {
-      code: 200,
-      msg: 'success',
-      data
+    try {
+      const data = await getArticleInTimeOrder()
+      ctx.status = 200
+      ctx.body = {
+        code: 200,
+        msg: 'success',
+        data
+      }
+    } catch (err) {
+      console.log(err)
     }
   }
+
 }
 
 export default new ArticleController()
