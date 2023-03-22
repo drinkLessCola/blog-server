@@ -173,7 +173,8 @@ class ArticleController {
   async getListInTimeOrder (ctx: Context, next: Next): Promise<void> {
     ctx.logger.info('[initArticleDB]')
     try {
-      const data = await getArticleInTimeOrder()
+      const { pageIdx, pageSize } = ctx.params
+      const data = await getArticleInTimeOrder(pageIdx, pageSize)
       ctx.status = 200
       ctx.body = {
         code: 200,

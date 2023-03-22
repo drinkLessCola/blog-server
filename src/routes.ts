@@ -14,7 +14,7 @@ router.get('/article/menu', ArticleController.getMenu)
 router.get('/article/slug', ArticleController.getSlug)
 router.get('/article/init', ArticleController.init)
 router.get('/article/fixCreatedAt', ArticleController.fixCreatedAt)
-router.get('/article/listInTimeOrder', ArticleController.getListInTimeOrder)
+router.get('/article/listInTimeOrder/:pageSize/:pageIdx', ArticleController.getListInTimeOrder)
 router.get('/article/(.*)', ArticleController.getArticle)
 
 // user 相关路由

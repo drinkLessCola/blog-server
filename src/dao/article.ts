@@ -1,4 +1,5 @@
-import sequelize, { Op, Sequelize } from 'sequelize'
+/* eslint-disable curly */
+import { Sequelize } from 'sequelize'
 import type { IArticleAttributes, IArticleCreationAttributes, IArticleModel } from '../models/article'
 import ArticleModel from '../models/article'
 import Tag from '../models/tag'
@@ -86,42 +87,74 @@ export const getArticlesByParentId = async (parentId: string | null): Promise<IA
 interface IArticleListInDate {
   // date: number
   date: string
-  articles: IArticleModel[]
+  articles: IArticleAttributes[]
 }
 
-export const getArticleInTimeOrder = async (): Promise<IArticleListInDate[]> => {
-  const articleCreatedDate = await ArticleModel.findAll({
+export const getArticleInTimeOrder = async (pageIdx = 0, pageSize = 10): Promise<IArticleListInDate[]> => {
+  const list = (await ArticleModel.findAll({
     where: {
       isMenu: false
     },
     attributes: [
+      'articleId', 'title', 'description', 'path',
       [Sequelize.fn('date_format', Sequelize.col('createdAt'), '%Y-%m-%d'), 'createDate']
+      // [Sequelize.fn('count', Sequelize.col('articleId')), 'count']
     ],
-    group: ['createDate'],
+    include: Tag,
+    // group: ['createDate'],
     order: [['createDate', 'DESC']]
     // group: [sequelize.fn('DATE', sequelize.col('createdAt')), 'Date']
-  }) as Array<IArticleModel & { dataValues: { createDate: string } }>
+  }) as Array<IArticleModel & { dataValues: { createDate: string } }>).map(item => item.dataValues)
 
-  const list = await Promise.all(articleCreatedDate.map(async (createdDate) => {
-    const date = createdDate.dataValues.createDate
-    const articles = await ArticleModel.findAll({
-      where: {
-        [Op.and]: [
-          sequelize.where(sequelize.fn('date_format', Sequelize.col('createdAt'), '%Y-%m-%d'), date),
-          { isMenu: false }
-        ]
-      },
-      attributes: ['articleId', 'title', 'description', 'path'],
-      include: Tag
-    })
 
-    return {
-      date,
-      articles
+  const section = list.slice((pageIdx - 1) * pageSize, pageIdx * pageSize)
+  const len = section.length
+  const articles: IArticleListInDate[] = []
+
+  if (!len) return articles
+
+  let startIdx = 0
+  for (let i = 1; i < len; i++) {
+    if (section[i].createDate === section[i - 1].createDate) continue
+    else {
+      const articleInSameDate = section.slice(startIdx, i)
+      articles.push({
+        date: section[startIdx].createDate,
+        articles: articleInSameDate
+      })
+      startIdx = i
     }
-  }))
+  }
+  articles.push({
+    date: section[startIdx].createDate,
+    articles: section.slice(startIdx)
+  })
+  // const startIdx = (pageIdx - 1) * pageSize
+  // let total = 0
+  // articleGroupInDate.some(({ count }) => {
+  //   // 0 5 5
+  //   // 5 2 5
+  // })
+  // const list = await Promise.all(date.map(async createdDate => {
+  //   const date = createdDate.dataValues.createDate
+  //   const articles = await ArticleModel.findAll({
+  //     where: {
+  //       [Op.and]: [
+  //         sequelize.where(sequelize.fn('date_format', Sequelize.col('createdAt'), '%Y-%m-%d'), date),
+  //         { isMenu: false }
+  //       ]
+  //     },
+  //     attributes: ['articleId', 'title', 'description', 'path'],
+  //     include: Tag
+  //   })
 
-  return list
+  //   return {
+  //     date,
+  //     articles
+  //   }
+  // }))
+
+  return articles
 }
 
 export const getArticleList = async (): Promise<IArticleModel[]> => {
