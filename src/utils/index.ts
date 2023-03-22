@@ -15,8 +15,8 @@ export const listToTree = <T, Id extends keyof T, Pid extends keyof Omit<T, Id>>
   parentId: T[Id] | null = null
 ): ITreeType<Omit<T, Pid>> => {
   const tree = list
-    .filter((item) => item[parentProp] === parentId)
-    .map((item) => {
+    .filter(item => item[parentProp] === parentId)
+    .map(item => {
       const { [parentProp]: pid, ...rest } = item
       return {
         ...rest,

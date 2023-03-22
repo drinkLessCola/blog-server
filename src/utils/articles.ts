@@ -91,7 +91,7 @@ watcher
     if (!stats) return
     await handleChange(path, stats)
   })
-  .on('unlink', async (path) => {
+  .on('unlink', async path => {
     log(`File ${path} has been removed`)
     await handleRemove(path)
   })
@@ -100,11 +100,11 @@ watcher
     if (!stats) return
     await handleAdd(path, stats)
   })
-  .on('unlinkDir', async (path) => {
+  .on('unlinkDir', async path => {
     log(`Directory ${path} has been removed`)
     await handleRemove(path)
   })
-  .on('error', (error) => {
+  .on('error', error => {
     log(`Watcher error: ${error.toString()}`)
   })
   .on('ready', () => {
