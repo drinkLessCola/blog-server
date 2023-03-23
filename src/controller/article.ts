@@ -1,6 +1,6 @@
 import ArticleModel from '../models/article'
 import { buildArticlesRootRecord, getArticleContent, getArticleCreatedAt, getArticlesTree } from '../utils/articles'
-import { getArticleByPath, getArticleInTimeOrder, getArticleList, getArticlesByParentId, updateArticleCreatedAt } from '../dao/article'
+import { getArticleByPath, getArticleInTimeOrder, getArticleList, getArticleMonthDataByYear, getArticlesByParentId, updateArticleCreatedAt } from '../dao/article'
 import type { Context, Next } from 'koa'
 import type { IMenuItem } from '../type/article'
 import type { IContext } from '../type/middleware'
@@ -41,7 +41,6 @@ const getMenu = async (): Promise<IMenuItem[]> => {
     isMenu
   }))
   const menu = listToTree(list, 'id', 'parentId')
-  console.log('menu', menu)
 
   return menu as IMenuItem[]
   // const map = new Map<string, IMenuItem[]>()
@@ -126,7 +125,6 @@ class ArticleController {
       if (!articleInfo) throw new Error()
 
       const { articleId, title, isMenu, lastModified } = articleInfo
-      console.log('articleInfo', articleId, title, isMenu, lastModified)
 
       const data = {
         articleId,
@@ -153,25 +151,46 @@ class ArticleController {
 
   async init (ctx: Context, next: Next): Promise<void> {
     ctx.logger.info('[initArticleDB]')
-    const articleRoots = getArticlesTree(filePath)
-    await buildArticlesRootRecord(articleRoots)
+    try {
+      const articleRoots = getArticlesTree(filePath)
+      await buildArticlesRootRecord(articleRoots)
+      ctx.status = 200
+      ctx.body = {
+        code: 200,
+        msg: 'success'
+      }
+      ctx.logger.debug('[success]')
+    } catch (err) {
+      ctx.logger.debug(`[error] ${JSON.stringify(err)}`)
+      ctx.throw(500, '初始化数据库失败')
+    }
   }
 
   async fixCreatedAt (ctx: Context, next: Next): Promise<void> {
     ctx.logger.info('[fixArticleCreatedAt]')
-    const articleList = await getArticleList()
-    await Promise.all(
-      articleList.map(async ({ path }) => {
-        const createdAt = getArticleCreatedAt(path)
-        console.log('createAt', createdAt)
-        if (!createdAt) return
-        return await updateArticleCreatedAt({ path, createdAt })
-      })
-    )
+    try {
+      const articleList = await getArticleList()
+      await Promise.all(
+        articleList.map(async ({ path }) => {
+          const createdAt = getArticleCreatedAt(path)
+          if (!createdAt) return
+          return await updateArticleCreatedAt({ path, createdAt })
+        })
+      )
+      ctx.status = 200
+      ctx.body = {
+        code: 200,
+        msg: 'success'
+      }
+      ctx.logger.debug('[success]')
+    } catch (err) {
+      ctx.logger.debug(`[error] ${JSON.stringify(err)}`)
+      ctx.throw(500, '修复创建日期失败')
+    }
   }
 
   async getListInTimeOrder (ctx: Context, next: Next): Promise<void> {
-    ctx.logger.info('[initArticleDB]')
+    ctx.logger.info('[getListInTimeOrder]')
     try {
       const { pageIdx, pageSize } = ctx.params
       const data = await getArticleInTimeOrder(pageIdx, pageSize)
@@ -181,11 +200,32 @@ class ArticleController {
         msg: 'success',
         data
       }
+      ctx.logger.debug('[success]')
     } catch (err) {
-      console.log(err)
+      ctx.logger.debug(`[error] ${JSON.stringify(err)}`)
+      ctx.throw(500, '获取时间顺序的文章列表失败')
     }
   }
 
-}
+  async getMonthData (ctx: Context, next: Next): Promise<void> {
+    ctx.logger.info('[getMonthData]')
+    try {
+      const { year } = ctx.params
+      const monthData = (await getArticleMonthDataByYear(year))
+        .reduce((cur, { month, count }) => ({ ...cur, [Number(month) - 1]: count }), {})
+      const data = Array.from({ ...monthData, length: 12 })
 
+      ctx.status = 200
+      ctx.body = {
+        code: 200,
+        msg: 'success',
+        data
+      }
+      ctx.logger.debug('[success]')
+    } catch (err) {
+      ctx.logger.debug(`[error] ${JSON.stringify(err)}`)
+      ctx.throw(500, '获取月份文章数量统计失败')
+    }
+  }
+}
 export default new ArticleController()

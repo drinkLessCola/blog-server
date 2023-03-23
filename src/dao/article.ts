@@ -1,5 +1,5 @@
 /* eslint-disable curly */
-import { Sequelize } from 'sequelize'
+import { Sequelize, col, fn } from 'sequelize'
 import type { IArticleAttributes, IArticleCreationAttributes, IArticleModel } from '../models/article'
 import ArticleModel from '../models/article'
 import Tag from '../models/tag'
@@ -22,7 +22,6 @@ export const createArticle = async ({
     where: { ino }
   })
   if (isInoExist) {
-    console.log('ino exist', ino)
     return isInoExist.articleId
   }
 
@@ -90,7 +89,7 @@ interface IArticleListInDate {
   articles: IArticleAttributes[]
 }
 
-export const getArticleInTimeOrder = async (pageIdx = 0, pageSize = 10): Promise<IArticleListInDate[]> => {
+export const getArticleInTimeOrder = async (pageIdx: number = 0, pageSize: number = 10): Promise<IArticleListInDate[]> => {
   const list = (await ArticleModel.findAll({
     where: {
       isMenu: false
@@ -155,6 +154,25 @@ export const getArticleInTimeOrder = async (pageIdx = 0, pageSize = 10): Promise
   // }))
 
   return articles
+}
+
+interface IArticleMonthData {
+  month: string
+  count: number
+}
+
+export const getArticleMonthDataByYear = async (year: number): Promise<IArticleMonthData[]> => {
+  const monthData = (await ArticleModel.findAll({
+    attributes: [
+      [fn('date_format', col('createdAt'), '%c'), 'month'],
+      [fn('count', '*'), 'count']
+    ],
+    where: Sequelize.where(fn('year', col('createdAt')), year),
+    group: ['month'],
+    order: [['month', 'ASC']]
+  })).map(item => item.dataValues) as unknown as IArticleMonthData[]
+
+  return monthData
 }
 
 export const getArticleList = async (): Promise<IArticleModel[]> => {
