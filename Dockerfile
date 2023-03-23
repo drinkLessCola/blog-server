@@ -8,6 +8,5 @@ RUN npm install --only=dev\
     && npm install typescript -g
 COPY . .
 RUN tsc
-RUN ls build
 EXPOSE 3000
 CMD ["node", "build/src/app.js"]
