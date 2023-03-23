@@ -1,7 +1,6 @@
 node_modules
 dist
 logs
-src/database/index.ts
 build
 *.tar.gz
 .env
