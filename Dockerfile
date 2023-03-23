@@ -9,4 +9,4 @@ RUN npm install --only=dev\
 COPY . .
 RUN tsc
 EXPOSE 3000
-CMD ["node", "src/build/app.js"]
+CMD ["node", "src/app.js"]
