@@ -3,11 +3,6 @@ on:
   push: 
     branches:
       - main
-    # 修改侦听的文件范围
-    paths:
-      - '.github/workflows/**'
-      - 'src/**'
-      - 'Dockerfile'
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -26,7 +21,6 @@ jobs:
         with:
           push: true
           tags: drinklesscola/blog-server:latest
-      
       - name: Pull on Server
         uses: appleboy/ssh-action@master
         with:
@@ -34,5 +28,5 @@ jobs:
           username: root
           password: ${{ secrets.REMOTE_PASSWORD }}
           script: |
-            /home/workspace/blog-server/deploy.sh
+            /home/workspace/blog-server/deploy-server.sh
 
