@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "tsc": "tsc",
-    "dev": "cross-env NODE_ENV=dev nodemon src/app.ts",
-    "build": "cross-env NODE_ENV=prod tsc && tar -czvf blog-server.tar.gz -C build ."
+    "dev": "cross-env NODE_ENV=development nodemon src/app.ts",
+    "build": "cross-env NODE_ENV=production tsc && tar -czvf blog-server.tar.gz -C build ."
   },
   "dependencies": {
     "@koa/cors": "^4.0.0",
@@ -19,6 +19,7 @@
     "chokidar": "^3.5.3",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
+    "dotenv": "^16.0.3",
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
     "koa": "^2.14.1",
