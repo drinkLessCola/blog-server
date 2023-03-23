@@ -28,5 +28,5 @@ jobs:
           username: root
           password: ${{ secrets.REMOTE_PASSWORD }}
           script: |
-            /home/workspace/blog-server/deploy-server.sh
+            /home/workspace/blog/deploy-server.sh
 
