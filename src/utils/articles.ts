@@ -198,7 +198,7 @@ export function getArticlesTree (dir: string, deep: number = 1): IArticle[] {
 
 export function getArticleCreatedAt (path: string): Date {
   const fileStats = statSync(normalize(`${OLD_ARTICLE_PATH}/${path}`))
-  console.log(normalize(`${OLD_ARTICLE_PATH}/${path}`))
+  // console.log(normalize(`${OLD_ARTICLE_PATH}/${path}`))
   return fileStats.birthtime
 }
 
