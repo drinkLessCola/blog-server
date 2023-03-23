@@ -15,5 +15,3 @@ export const ARTICLE_PATH = process.env.NODE_ENV === 'development'
   ? 'E:\\nextCloud\\java-script-learning-notes'
   : '/home/files/java-script-learning-notes'
 
-
-

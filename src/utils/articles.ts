@@ -10,7 +10,7 @@ import {
   updateArticle
 } from '../dao/article'
 import chokidar from 'chokidar'
-import { ARTICLE_PATH } from '../constant/path'
+import { ARTICLE_PATH } from '../config'
 
 const OLD_ARTICLE_PATH = 'E:\\js\\java-script-learning-notes'
 // export const path = resolve(__dirname, '../')

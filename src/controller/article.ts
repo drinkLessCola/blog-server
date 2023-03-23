@@ -4,7 +4,7 @@ import { getArticleByPath, getArticleInTimeOrder, getArticleList, getArticleMont
 import type { Context, Next } from 'koa'
 import type { IMenuItem } from '../type/article'
 import type { IContext } from '../type/middleware'
-import { ARTICLE_PATH as filePath } from '../constant/path'
+import { ARTICLE_PATH as filePath } from '../config'
 import { listToTree } from '../utils'
 // import { Op } from 'sequelize'
 
