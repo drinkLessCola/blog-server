@@ -83,13 +83,17 @@ export const getArticlesByParentId = async (parentId: string | null): Promise<IA
   return menuItems
 }
 
-interface IArticleListInDate {
-  // date: number
+interface IArticleListInDateItem {
   date: string
   articles: IArticleAttributes[]
 }
+interface IArticleListInDate {
+  // date: number
+  total: number
+  list: IArticleListInDateItem[]
+}
 
-export const getArticleInTimeOrder = async (pageIdx: number = 0, pageSize: number = 10): Promise<IArticleListInDate[]> => {
+export const getArticleInTimeOrder = async (pageIdx: number = 0, pageSize: number = 10000): Promise<IArticleListInDate> => {
   const list = (await ArticleModel.findAll({
     where: {
       isMenu: false
@@ -105,12 +109,15 @@ export const getArticleInTimeOrder = async (pageIdx: number = 0, pageSize: numbe
     // group: [sequelize.fn('DATE', sequelize.col('createdAt')), 'Date']
   }) as Array<IArticleModel & { dataValues: { createDate: string } }>).map(item => item.dataValues)
 
-
+  const total = list.length
   const section = list.slice((pageIdx - 1) * pageSize, pageIdx * pageSize)
   const len = section.length
-  const articles: IArticleListInDate[] = []
+  const articles: IArticleListInDateItem[] = []
 
-  if (!len) return articles
+  if (!len) return {
+    total: 0,
+    list: articles
+  }
 
   let startIdx = 0
   for (let i = 1; i < len; i++) {
@@ -153,7 +160,7 @@ export const getArticleInTimeOrder = async (pageIdx: number = 0, pageSize: numbe
   //   }
   // }))
 
-  return articles
+  return { list: articles, total }
 }
 
 interface IArticleMonthData {
